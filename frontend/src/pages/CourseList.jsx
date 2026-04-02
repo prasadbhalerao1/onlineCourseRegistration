@@ -5,10 +5,12 @@ import { Users, GraduationCap } from 'lucide-react';
 const CourseList = ({ activeStudent }) => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const fetchCourses = async () => {
+    if (!API_URL) return;
     try {
-      const res = await axios.get('http://localhost:5000/api/courses');
+      const res = await axios.get(`${API_URL}/courses`);
       setCourses(res.data);
     } catch (err) {
       console.error(err);
@@ -19,12 +21,13 @@ const CourseList = ({ activeStudent }) => {
 
   useEffect(() => {
     fetchCourses();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [API_URL]);
 
   const handleEnroll = async (courseId) => {
     if (!activeStudent) return alert("Please select a student from the Demo Mode dropdown first!");
     try {
-      await axios.post(`http://localhost:5000/api/students/${activeStudent}/enroll`, { courseId });
+      await axios.post(`${API_URL}/students/${activeStudent}/enroll`, { courseId });
       alert("Successfully enrolled!");
       fetchCourses();
     } catch (err) {

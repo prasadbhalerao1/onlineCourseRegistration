@@ -5,6 +5,7 @@ import { BookX, GraduationCap } from 'lucide-react';
 const StudentDashboard = ({ activeStudent }) => {
   const [studentData, setStudentData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const fetchStudentData = async () => {
     if (!activeStudent) {
@@ -13,7 +14,7 @@ const StudentDashboard = ({ activeStudent }) => {
     }
     
     try {
-      const res = await axios.get(`http://localhost:5000/api/students/${activeStudent}`);
+      const res = await axios.get(`${API_URL}/students/${activeStudent}`);
       setStudentData(res.data);
     } catch (err) {
       console.error(err);
@@ -29,7 +30,7 @@ const StudentDashboard = ({ activeStudent }) => {
   const handleUnenroll = async (courseId) => {
     if (window.confirm("Are you sure you want to drop this course?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/students/${activeStudent}/enroll/${courseId}`);
+        await axios.delete(`${API_URL}/students/${activeStudent}/enroll/${courseId}`);
         fetchStudentData(); // Refresh UI
       } catch (err) {
         alert(err.response?.data?.message || "Error unenrolling");

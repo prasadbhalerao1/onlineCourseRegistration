@@ -9,10 +9,11 @@ import axios from 'axios';
 function App() {
   const [students, setStudents] = useState([]);
   const [activeStudent, setActiveStudent] = useState('');
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const fetchStudents = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/students');
+      const res = await axios.get(`${API_URL}/students`);
       setStudents(res.data);
       if (res.data.length > 0 && !activeStudent) {
         setActiveStudent(res.data[0]._id);
@@ -46,7 +47,7 @@ function App() {
             const name = prompt("Enter student name:");
             const email = prompt("Enter student email:");
             if (name && email) {
-              axios.post('http://localhost:5000/api/students', { name, email })
+              axios.post(`${API_URL}/students`, { name, email })
                 .then(() => fetchStudents())
                 .catch(err => alert("Error creating student"));
             }

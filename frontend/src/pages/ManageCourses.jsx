@@ -6,10 +6,12 @@ const ManageCourses = () => {
   const [courses, setCourses] = useState([]);
   const [formData, setFormData] = useState({ title: '', description: '', instructor: '', capacity: '' });
   const [editingId, setEditingId] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const fetchCourses = async () => {
+    if (!API_URL) return;
     try {
-      const res = await axios.get('http://localhost:5000/api/courses');
+      const res = await axios.get(`${API_URL}/courses`);
       setCourses(res.data);
     } catch (err) {
       console.error(err);
@@ -18,15 +20,16 @@ const ManageCourses = () => {
 
   useEffect(() => {
     fetchCourses();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [API_URL]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingId) {
-        await axios.put(`http://localhost:5000/api/courses/${editingId}`, formData);
+        await axios.put(`${API_URL}/courses/${editingId}`, formData);
       } else {
-        await axios.post('http://localhost:5000/api/courses', formData);
+        await axios.post(`${API_URL}/courses`, formData);
       }
       setFormData({ title: '', description: '', instructor: '', capacity: '' });
       setEditingId(null);
@@ -49,9 +52,9 @@ const ManageCourses = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this course?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/courses/${id}`);
+        await axios.delete(`${API_URL}/courses/${id}`);
         fetchCourses();
-      } catch (err) {
+      } catch {
         alert("Error deleting course");
       }
     }
