@@ -47,12 +47,20 @@ const courseRoutes = require("./routes/courses");
 const studentRoutes = require("./routes/students");
 
 app.use("/api", (_req, res, next) => {
-    if (mongoose.connection.readyState !== 1) {
-        return res.status(503).json({
-            message: "Database not connected. Please check MONGO_URI on Vercel.",
+    connectToDatabase()
+        .then((isConnected) => {
+            if (!isConnected) {
+                return res.status(503).json({
+                    message: "Database not connected. Please check MONGO_URI on Vercel.",
+                });
+            }
+            next();
+        })
+        .catch(() => {
+            res.status(503).json({
+                message: "Database not connected. Please check MONGO_URI on Vercel.",
+            });
         });
-    }
-    next();
 });
 
 app.use("/api/courses", courseRoutes);
@@ -60,6 +68,26 @@ app.use("/api/students", studentRoutes);
 
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
+let dbConnectPromise = null;
+
+const connectToDatabase = async () => {
+    if (mongoose.connection.readyState === 1) return true;
+    if (!MONGO_URI) return false;
+
+    try {
+        if (!dbConnectPromise) {
+            dbConnectPromise = mongoose.connect(MONGO_URI, {
+                serverSelectionTimeoutMS: 5000,
+            });
+        }
+        await dbConnectPromise;
+        return true;
+    } catch (err) {
+        console.error("❌ MongoDB connection error:", err.message || err);
+        dbConnectPromise = null;
+        return false;
+    }
+};
 
 if (!MONGO_URI) {
     console.warn("⚠️ MONGO_URI is not defined in the environment variables.");
@@ -68,10 +96,11 @@ if (!MONGO_URI) {
     );
     // We'll let the server start but it won't connect to DB.
 } else {
-    mongoose
-    .connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 })
-        .then(() => console.log("✅ Connected to MongoDB"))
-        .catch((err) => console.error("❌ MongoDB connection error:", err));
+    connectToDatabase().then((isConnected) => {
+        if (isConnected) {
+            console.log("✅ Connected to MongoDB");
+        }
+    });
 }
 
 if (process.env.NODE_ENV !== "production") {
