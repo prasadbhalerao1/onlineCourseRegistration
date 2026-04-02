@@ -4,6 +4,14 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
+mongoose.set("bufferCommands", false);
+
+const dbStateMap = {
+    0: "disconnected",
+    1: "connected",
+    2: "connecting",
+    3: "disconnecting",
+};
 
 app.use(
     cors({
@@ -16,8 +24,18 @@ app.use(express.json());
 
 // Health check
 app.get("/health", (_req, res) =>
-    res.json({ status: "ok", timestamp: new Date().toISOString() }),
+    res.json({
+        status: "ok",
+        dbStatus: dbStateMap[mongoose.connection.readyState] || "unknown",
+        dbState: mongoose.connection.readyState,
+        timestamp: new Date().toISOString(),
+    }),
 );
+
+// Silence browser favicon probing on backend root URL.
+app.get("/favicon.ico", (_req, res) => {
+    res.status(204).end();
+});
 
 // Root route
 app.get("/", (req, res) => {
@@ -27,6 +45,15 @@ app.get("/", (req, res) => {
 // Routes
 const courseRoutes = require("./routes/courses");
 const studentRoutes = require("./routes/students");
+
+app.use("/api", (_req, res, next) => {
+    if (mongoose.connection.readyState !== 1) {
+        return res.status(503).json({
+            message: "Database not connected. Please check MONGO_URI on Vercel.",
+        });
+    }
+    next();
+});
 
 app.use("/api/courses", courseRoutes);
 app.use("/api/students", studentRoutes);
@@ -42,7 +69,7 @@ if (!MONGO_URI) {
     // We'll let the server start but it won't connect to DB.
 } else {
     mongoose
-        .connect(MONGO_URI)
+    .connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 })
         .then(() => console.log("✅ Connected to MongoDB"))
         .catch((err) => console.error("❌ MongoDB connection error:", err));
 }
