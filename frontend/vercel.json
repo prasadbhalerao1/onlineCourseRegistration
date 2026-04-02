@@ -1,13 +1,19 @@
 {
-  "headers": [
-    {
-      "source": "/",
-      "headers": [
+    "rewrites": [
         {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:"
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
-      ]
-    }
-  ]
+    ],
+    "headers": [
+        {
+            "source": "/",
+            "headers": [
+                {
+                    "key": "Content-Security-Policy",
+                    "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:"
+                }
+            ]
+        }
+    ]
 }
