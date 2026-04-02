@@ -19,6 +19,11 @@ app.get("/health", (_req, res) =>
     res.json({ status: "ok", timestamp: new Date().toISOString() }),
 );
 
+// Root route
+app.get("/", (req, res) => {
+    res.send("Online Course Registration API is running!");
+});
+
 // Routes
 const courseRoutes = require("./routes/courses");
 const studentRoutes = require("./routes/students");
